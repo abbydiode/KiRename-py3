@@ -9,8 +9,8 @@ python kirename.py [-s <source>] [-d <dest>] [-n <name> ] [ -t <tag> ]
 
 -s               Source directory (default: ./)
 -d               Destination directory (default: ./)
--n               New name
--t               Tag to add
+-n               New project name
+-t               Text to append
 -x               Dry run, do not change any files
 -h (--help)      You're here
 ```

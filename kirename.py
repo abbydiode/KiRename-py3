@@ -33,17 +33,13 @@ def make_sure_path_exists(path):
 
 
 def help():
-    print("KiRename Version %s" % version)
-    print()
-    print(
-        'python kirename.py [-s <source>] [-d <dest>] [-n <name> | -t <tag> ]')
-    print()
-    print('Rename a KiCad project')
-    print()
+    print("KiRename Version %s\n" % version)
+    print('python kirename.py [-s <source>] [-d <dest>] [-n <name> | -t <tag> ]\n')
+    print('Rename a KiCad project\n')
     print('-s               Source directory (default: ./)')
     print('-d               Destination directory (default: ./)')
-    print('-n               New name')
-    print('-t               Tag to add')
+    print('-n               New project name')
+    print('-t               Text to append')
     print('-x               Dry run, do not change any files')
     print('-h (--help)      You\'re here')
 
@@ -66,7 +62,7 @@ def main(argv):
 
     for opt, arg in opts:
         if opt in ("-h", "--help"):
-            help(opt == "--help")
+            help()
             sys.exit()
         elif opt in ("-s"):
             sourcedir = arg
