@@ -45,11 +45,13 @@ def main(argv):
 
     for opt, arg in opts:
         if opt in ("-p"):
-            project_path = os.getcwd() if arg == "" else arg
+            project_path = arg
         elif opt in ("-n"):
             new_name = arg
         elif opt in ("-x"):
             dry_run = True
+
+    project_path = os.getcwd() if project_path == "" else project_path
 
     if new_name == "": sys.exit(f"No project name specified")
 
@@ -108,6 +110,5 @@ def main(argv):
         except IOError as error:
             sys.exit(f"Could not rename directory {error.filename} ({error.errno})")
     print(f"\nSuccessfully renamed project {project_name} to {new_name}, new path is {new_project_path}")
-
 
 main(sys.argv[1:])

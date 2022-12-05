@@ -9,20 +9,19 @@
 3. Run `python kirename` to view the command usage
 
 ```output
-Usage: python kirename.py [-s <source>] [-d <dest>] [-n <name> ] [ -t <tag> ]
+Usage: python kirename.py -p <project path> -n <new name>
 
--s              Source directory (default: ./)
--d              Destination directory (default: ./)
--n              New project name
--t              Text to append
--x              Dry run, do not change any files
--h (--help)     You're here
+Description: Renames the specified KiCad 6 project. Project path defaults to current directory if not specified.
+
+Options:
+-p Path to the project you wish to rename
+-n Desired new project name, use quotation marks for names containing spaces
+-x Dry run, outputs which files would be renamed without this option enabled
 ```
 
 ## Usage
 
-| Example | Command |
-|---------|---------|
-| Rename project in current directory to `foo` | `python kirename.py -n foo` |
-| Rename project in directory `foo` to `bar` | `python kirename.py -s ./foo -n bar` |
-| Append `_v1` to project in current directory | `python kirename.py -t _v1` |
+| Example                                      | Command                              |
+|----------------------------------------------|--------------------------------------|
+| Rename project in current directory to `foo` | `python kirename.py -n foo`          |
+| Rename project in directory `foo` to `bar`   | `python kirename.py -p ./foo -n bar` |
