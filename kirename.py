@@ -6,15 +6,15 @@ from getopt import getopt, GetoptError
 version = "0.3.0"
 
 help = (f"KiRename {version}\n"
-    "\n"
-    "Usage: python kirename.py -p <project path> -n <new name>\n"
-    "\n"
-    "Description: Renames the specified KiCad 6 project. Project path defaults to current directory if not specified.\n"
-    "\n"
-    "Options:\n"
-    "-p Path to the project you wish to rename\n"
-    "-n Desired new project name, use quotation marks for names containing spaces\n"
-    "-x Dry run, outputs which files would be renamed without this option active (optional)")
+        "\n"
+        "Usage: python kirename.py -p <project path> -n <new name>\n"
+        "\n"
+        "Description: Renames the specified KiCad 6 project. Project path defaults to current directory if not specified.\n"
+        "\n"
+        "Options:\n"
+        "-p Path to the project you wish to rename\n"
+        "-n Desired new project name, use quotation marks for names containing spaces\n"
+        "-x Dry run, outputs which files would be renamed without this option active (optional)")
 
 file_extensions = [
     ".kicad_pro",
@@ -82,14 +82,14 @@ def main(argv):
             file_dir, file_name = os.path.split(file_dir)
             # print(f"{file_dir} + {file_name} + {file_ext}")
             new_file = file_name.replace(project_name, new_name) + file_ext
-            
+
             if not dry_run:
                 try:
                     os.rename(file, os.path.join(file_dir, new_file))
                 except IOError as error:
                     sys.exit(f"Could not rename file {error.filename} ({error.errno})")
             print(f"Renamed file {file_name}{file_ext} to {new_file}")
-    
+
     # Rename all directories
     for directory in directories:
         directory_path, directory_name = os.path.split(file_dir)
@@ -101,7 +101,7 @@ def main(argv):
             except IOError as error:
                 sys.exit(f"Could not rename directory {error.filename} ({error.errno})")
         print(f"Renamed directory {directory_name} to {new_directory}")
-    
+
     # Rename project directory
     new_project_path = os.path.join(os.path.dirname(project_path), new_name)
     if not dry_run:
