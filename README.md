@@ -2,14 +2,13 @@
 
 Rename a KiCad project
 
-
 ## Usage
 
 ```
 python kirename.py [-s <source>] [-d <dest>] [-n <name> ] [ -t <tag> ]
 
--s               Source directory (./)
--d               Destination directory (./)
+-s               Source directory (default: ./)
+-d               Destination directory (default: ./)
 -n               New name
 -t               Tag to add
 -x               Dry run, do not change any files
