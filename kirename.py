@@ -1,191 +1,113 @@
 import os
 import sys
-import errno
-import shutil
+from pathlib import Path
 from getopt import getopt, GetoptError
 
-version = "0.2.0"
+version = "0.3.0"
 
 help = (f"KiRename {version}\n"
     "\n"
-    "Usage: python kirename.py [-s <source>] [-d <destination>] [-n <name>] [-a <append> ]\n"
+    "Usage: python kirename.py -p <project path> -n <new name>\n"
     "\n"
-    "-s Source Directory (default: ./)\n"
-    "-d Desination directory (default: ./)\n"
-    "-n Desired new project name\n"
-    "-t Text to append\n"
-    "-x Dry run, doesn't rename any files but outputs what would be changed")
+    "Description: Renames the specified KiCad 6 project. Project path defaults to current directory if not specified.\n"
+    "\n"
+    "Options:\n"
+    "-p Path to the project you wish to rename\n"
+    "-n Desired new project name, use quotation marks for names containing spaces\n"
+    "-x Dry run, outputs which files would be renamed without this option active (optional)")
 
-def before(value, a):
-    pos_a = value.find(a)
-    if pos_a == -1:
-        return ""
-    return value[0:pos_a]
+file_extensions = [
+    ".kicad_pro",
+    ".kicad_pcb",
+    ".kicad_sch",
+    ".kicad_sym",
+    ".kicad_mod",
+    ".kicad_wks",
+    ".kicad_prl",
+    ".zip"
+]
 
-def after(value, a):
-    pos_a = value.rfind(a)
-    if pos_a == -1:
-        return ""
-    adjusted_pos_a = pos_a + len(a)
-    if adjusted_pos_a >= len(value):
-        return ""
-    return value[adjusted_pos_a:]
-
-def make_sure_path_exists(path):
-    try:
-        os.makedirs(path)
-    except OSError as exception:
-        if exception.errno != errno.EEXIST:
-            raise
-
-def main(args):
-    mode = "none"
+def main(argv):
+    project_path = ""
+    project_name = ""
     new_name = ""
-    source_dir = ""
-    append_name = ""
-    dest_dir = ""
     dry_run = False
 
+    # Try getting options, return error message if invalid
     try:
-        opts, arg = getopt(args, "s:d:n:a:x")
+        opts, _ = getopt(argv, "p:n:x")
     except GetoptError as error:
         sys.exit(error.msg.capitalize())
 
-    for opt, arg in opts:
-        if opt in ("-s"):
-            source_dir = os.getcwd() if arg == "" else arg
-        elif opt in ("-d"):
-            dest_dir = arg
-        elif opt in ("-a"):
-            append_name = arg
-        elif opt in ("-n"):
-            new_name = arg
-        elif opt in ("-t"):
-            dry_run = True
-
+    # If there were no options specified, return help text
     if len(opts) == 0:
         sys.exit(help)
 
-    if new_name == "" and append_name == "":
-        sys.exit(f"No new project name or text to append specified")
+    for opt, arg in opts:
+        if opt in ("-p"):
+            project_path = os.getcwd() if arg == "" else arg
+        elif opt in ("-n"):
+            new_name = arg
+        elif opt in ("-x"):
+            dry_run = True
 
-    if not os.path.exists(source_dir):
-        print(f"{source_dir}: No such directory")
-        quit()
+    if new_name == "": sys.exit(f"No project name specified")
 
-    top_level_files = [f for f in os.listdir(source_dir) if os.path.isfile(os.path.join(source_dir, f))]
+    if not os.path.exists(project_path): sys.exit(f"{project_path}: No such directory")
 
     files = []
-    for root, directories, filenames in os.walk(source_dir):
-        for filename in filenames:
-            files.append(os.path.join(after(root, source_dir), filename))
+    directories = []
+    for root, project_directories, project_files in os.walk(project_path):
+        for file in project_files:
+            files.append(os.path.join(root, file))
+        for directory in project_directories:
+            directories.append(os.path.join(root, directory))
 
-    project = ""
-    for file in top_level_files:
+    # Check if project contains a .kicad_pro file and get project name
+    for file in files:
         if file.endswith(".kicad_pro"):
-            if project == "":
-                project = before(file, ".kicad_pro")
+            if project_name == "":
+                project_name = Path(file).stem
+                print(f"Found project file {project_name}.kicad_pro in {project_path}\n")
             else:
-                print(f"Error: Multiple projects found in {source_dir}")
-                quit(1)
+                sys.exit(f"Multiple projects found in {project_path}")
+    if project_name == "": sys.exit(f"No project file found in {project_path}")
 
-    if project == "":
-        print(f"Error: No project file found in {source_dir}")
-        quit(2)
+    # Rename all files
+    for file in files:
+        file_dir, file_ext = os.path.splitext(file)
+        if file_ext in file_extensions:
+            file_dir, file_name = os.path.split(file_dir)
+            # print(f"{file_dir} + {file_name} + {file_ext}")
+            new_file = file_name.replace(project_name, new_name) + file_ext
+            
+            if not dry_run:
+                try:
+                    os.rename(file, os.path.join(file_dir, new_file))
+                except IOError as error:
+                    sys.exit(f"Could not rename file {error.filename} ({error.errno})")
+            print(f"Renamed file {file_name}{file_ext} to {new_file}")
+    
+    # Rename all directories
+    for directory in directories:
+        directory_path, directory_name = os.path.split(file_dir)
+        new_directory = directory_name.replace(project_name, new_name)
 
-    if dest_dir == "":
-        if (append_name == "" and new_name == ""):
-            mode = "copy"
-            dest_dir = source_dir
-            new_name = project
-        elif (append_name != "" and new_name != ""):
-            print("Error: Must specify only one of name or tag")
-            quit()
-        elif append_name != "":
-            mode = "rename"
-            dest_dir = source_dir
-            new_name = project + append_name
-        elif new_name != "":
-            mode = "rename"
-            dest_dir = source_dir
-    else:
-        if (append_name == "" and new_name == ""):
-            mode = "copy"
-            dest_dir = os.path.join(source_dir, dest_dir)
-            new_name = project
-        elif (append_name != "" and new_name != ""):
-            print("Error: Must specify only one of name or tag")
-            quit()
-        elif append_name != "":
-            mode = "copy"
-            new_name = project + append_name
-        elif new_name != "":
-            mode = "copy"
-
-    print("project name: %s" % project)
-    print("new project name: %s" % new_name)
-    print("")
-
-    if dry_run:
-        print("mode      : %s" % mode)
-        print("sourcedir : %s" % source_dir)
-        print("destdir   : %s" % dest_dir)
-        print("")
-
-    if dry_run:
-        if not os.path.exists(dest_dir):
-            print("create : %s" % dest_dir)
-    else:
+        if not dry_run:
+            try:
+                os.rename(directory, os.path.join(directory_path, new_directory))
+            except IOError as error:
+                sys.exit(f"Could not rename directory {error.filename} ({error.errno})")
+        print(f"Renamed directory {directory_name} to {new_directory}")
+    
+    # Rename project directory
+    new_project_path = os.path.join(os.path.dirname(project_path), new_name)
+    if not dry_run:
         try:
-            make_sure_path_exists(dest_dir)
-        except:
-            print("Error creating dest folder %s" % dest_dir)
-            quit()
-
-    try:
-        for file in files:
-            if (file.endswith(".kicad_sch") or
-                file.endswith(".kicad_lib") or
-                file.endswith(".kicad_mod") or
-                file.endswith(".kicad_cmp") or
-                file.endswith(".kicad_brd") or
-                file.endswith(".kicad_pcb") or
-                file.endswith(".kicad_pos") or
-                file.endswith(".kicad_net") or
-                file.endswith(".kicad_pro") or
-                file.endswith(".kicad_py") or
-                file.endswith(".kicad_pdf") or
-                file.endswith(".kicad_txt") or
-                file.endswith(".kicad_dcm") or
-                file.endswith(".kicad_wks") or
-                file == "fp-lib-table"):
-
-                if file.startswith(project):
-                    source_file = os.path.join(source_dir, file)
-                    dest_file = os.path.join(
-                        dest_dir, new_name + after(file, project))
-
-                    if dry_run:
-                        print("rename : %s ==> %s" % (file, dest_file))
-                    else:
-                        if mode == "copy":
-                            shutil.copy2(source_file, dest_file)
-                        else:
-                            os.rename(source_file, dest_file)
-                else:
-                    if mode == "copy":
-                        source_file = os.path.join(source_dir, file)
-                        dest_file = os.path.join(dest_dir, file)
-                        if dry_run:
-                            print("copy   : %s ==> %s" % (file, dest_file))
-                        else:
-                            shutil.copy2(source_file, dest_file)
-
-    except IOError as exception:
-        print("Error copying file %s : %s" %
-              (exception.filename, exception.strerror))
-        quit()
+            os.rename(project_path, new_project_path)
+        except IOError as error:
+            sys.exit(f"Could not rename directory {error.filename} ({error.errno})")
+    print(f"\nSuccessfully renamed project {project_name} to {new_name}, new path is {new_project_path}")
 
 
-if __name__ == "__main__":
-    main(sys.argv[1:])
+main(sys.argv[1:])
