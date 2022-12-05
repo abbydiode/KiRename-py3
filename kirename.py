@@ -1,18 +1,26 @@
-import getopt
+import os
+import sys
 import errno
 import shutil
-import sys
-import os
-from time import strftime
+from getopt import getopt, GetoptError
+
 version = "0.2.0"
 
+help = (f"KiRename {version}\n"
+    "\n"
+    "Usage: python kirename.py [-s <source>] [-d <destination>] [-n <name>] [-a <append> ]\n"
+    "\n"
+    "-s Source Directory (default: ./)\n"
+    "-d Desination directory (default: ./)\n"
+    "-n Desired new project name\n"
+    "-t Text to append\n"
+    "-x Dry run, doesn't rename any files but outputs what would be changed")
 
 def before(value, a):
     pos_a = value.find(a)
     if pos_a == -1:
         return ""
     return value[0:pos_a]
-
 
 def after(value, a):
     pos_a = value.rfind(a)
@@ -23,7 +31,6 @@ def after(value, a):
         return ""
     return value[adjusted_pos_a:]
 
-
 def make_sure_path_exists(path):
     try:
         os.makedirs(path)
@@ -31,108 +38,87 @@ def make_sure_path_exists(path):
         if exception.errno != errno.EEXIST:
             raise
 
-
-def help():
-    print("KiRename Version %s\n" % version)
-    print('python kirename.py [-s <source>] [-d <dest>] [-n <name>] [-t <tag> ]\n')
-    print('-s              Source directory (default: ./)')
-    print('-d              Destination directory (default: ./)')
-    print('-n              New project name')
-    print('-t              Text to append')
-    print('-x              Dry run, do not change any files')
-    print('-h (--help)     You\'re here')
-
-
-def main(argv):
-
+def main(args):
     mode = "none"
     new_name = ""
-    sourcedir = ""
-    suffix = ""
-    destdir = ""
-    recurse = False
+    source_dir = ""
+    append_name = ""
+    dest_dir = ""
     dry_run = False
 
     try:
-        opts, arg = getopt.getopt(argv, "s:d:n:t:hxv", ["help"])
-    except getopt.GetoptError:
-        help()
-        sys.exit(2)
+        opts, arg = getopt(args, "s:d:n:a:x")
+    except GetoptError as error:
+        sys.exit(error.msg.capitalize())
 
     for opt, arg in opts:
-        if opt in ("-h", "--help"):
-            help()
-            sys.exit()
-        elif opt in ("-s"):
-            sourcedir = arg
+        if opt in ("-s"):
+            source_dir = os.getcwd() if arg == "" else arg
         elif opt in ("-d"):
-            destdir = arg
-        elif opt in ("-t"):
-            suffix = arg
+            dest_dir = arg
+        elif opt in ("-a"):
+            append_name = arg
         elif opt in ("-n"):
             new_name = arg
-        elif opt in ("-x"):
+        elif opt in ("-t"):
             dry_run = True
 
-    if sourcedir == "":
-        sourcedir = os.getcwd()
+    if len(opts) == 0:
+        sys.exit(help)
 
-    if not os.path.exists(sourcedir):
-        print("Error: Invalid directory %s" % sourcedir)
+    if new_name == "" and append_name == "":
+        sys.exit(f"No new project name or text to append specified")
+
+    if not os.path.exists(source_dir):
+        print(f"{source_dir}: No such directory")
         quit()
 
-    top_level_files = [f for f in os.listdir(
-        sourcedir) if os.path.isfile(os.path.join(sourcedir, f))]
+    top_level_files = [f for f in os.listdir(source_dir) if os.path.isfile(os.path.join(source_dir, f))]
 
     files = []
-    if recurse:
-        for root, dirnames, filenames in os.walk(sourcedir):
-            for filename in filenames:
-                files.append(os.path.join(after(root, sourcedir), filename))
-    else:
-        files = [f for f in os.listdir(sourcedir) if os.path.isfile(
-            os.path.join(sourcedir, f))]
+    for root, directories, filenames in os.walk(source_dir):
+        for filename in filenames:
+            files.append(os.path.join(after(root, source_dir), filename))
 
     project = ""
     for file in top_level_files:
         if file.endswith(".kicad_pro"):
-
             if project == "":
                 project = before(file, ".kicad_pro")
             else:
-                print("Error: Multiple projects found in %s" % sourcedir)
+                print(f"Error: Multiple projects found in {source_dir}")
                 quit(1)
 
     if project == "":
-        print("Error: No project file found in %s" % sourcedir)
+        print(f"Error: No project file found in {source_dir}")
         quit(2)
 
-    if destdir == "":
-        if (suffix == "" and new_name == ""):
+    if dest_dir == "":
+        if (append_name == "" and new_name == ""):
             mode = "copy"
-            destdir = sourcedir
+            dest_dir = source_dir
             new_name = project
-        elif (suffix != "" and new_name != ""):
+        elif (append_name != "" and new_name != ""):
             print("Error: Must specify only one of name or tag")
             quit()
-        elif suffix != "":
+        elif append_name != "":
             mode = "rename"
-            destdir = sourcedir
-            new_name = project + suffix
+            dest_dir = source_dir
+            new_name = project + append_name
         elif new_name != "":
             mode = "rename"
-            destdir = sourcedir
+            dest_dir = source_dir
     else:
-        if (suffix == "" and new_name == ""):
+        if (append_name == "" and new_name == ""):
             mode = "copy"
-            destdir = os.path.join(sourcedir, destdir)
+            dest_dir = os.path.join(source_dir, dest_dir)
             new_name = project
-        elif (suffix != "" and new_name != ""):
+        elif (append_name != "" and new_name != ""):
             print("Error: Must specify only one of name or tag")
             quit()
-        elif suffix != "":
+        elif append_name != "":
             mode = "copy"
-            new_name = project + suffix
+            new_name = project + append_name
         elif new_name != "":
             mode = "copy"
 
@@ -142,18 +128,18 @@ def main(argv):
 
     if dry_run:
         print("mode      : %s" % mode)
-        print("sourcedir : %s" % sourcedir)
-        print("destdir   : %s" % destdir)
+        print("sourcedir : %s" % source_dir)
+        print("destdir   : %s" % dest_dir)
         print("")
 
     if dry_run:
-        if not os.path.exists(destdir):
-            print("create : %s" % destdir)
+        if not os.path.exists(dest_dir):
+            print("create : %s" % dest_dir)
     else:
         try:
-            make_sure_path_exists(destdir)
+            make_sure_path_exists(dest_dir)
         except:
-            print("Error creating dest folder %s" % destdir)
+            print("Error creating dest folder %s" % dest_dir)
             quit()
 
     try:
@@ -175,9 +161,9 @@ def main(argv):
                 file == "fp-lib-table"):
 
                 if file.startswith(project):
-                    source_file = os.path.join(sourcedir, file)
+                    source_file = os.path.join(source_dir, file)
                     dest_file = os.path.join(
-                        destdir, new_name + after(file, project))
+                        dest_dir, new_name + after(file, project))
 
                     if dry_run:
                         print("rename : %s ==> %s" % (file, dest_file))
@@ -188,8 +174,8 @@ def main(argv):
                             os.rename(source_file, dest_file)
                 else:
                     if mode == "copy":
-                        source_file = os.path.join(sourcedir, file)
-                        dest_file = os.path.join(destdir, file)
+                        source_file = os.path.join(source_dir, file)
+                        dest_file = os.path.join(dest_dir, file)
                         if dry_run:
                             print("copy   : %s ==> %s" % (file, dest_file))
                         else:
