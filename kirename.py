@@ -34,7 +34,7 @@ def make_sure_path_exists(path):
 
 def help():
     print("KiRename Version %s\n" % version)
-    print('python kirename.py [-s <source>] [-d <dest>] [-n <name> | -t <tag> ]\n')
+    print('python kirename.py [-s <source>] [-d <dest>] [-n <name>] [-t <tag> ]\n')
     print('Rename a KiCad project\n')
     print('-s               Source directory (default: ./)')
     print('-d               Destination directory (default: ./)')
