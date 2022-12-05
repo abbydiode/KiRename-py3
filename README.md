@@ -1,7 +1,5 @@
 # KiRename
 
-Rename a KiCad project
-
 ## Usage
 
 ```output
