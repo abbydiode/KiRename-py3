@@ -26,6 +26,6 @@ Options:
 ## Usage
 
 | Example                                      | Command                              |
-|----------------------------------------------|--------------------------------------|
+|:---------------------------------------------|:-------------------------------------|
 | Rename project in current directory to `foo` | `python kirename.py -n foo`          |
 | Rename project in directory `foo` to `bar`   | `python kirename.py -p ./foo -n bar` |
