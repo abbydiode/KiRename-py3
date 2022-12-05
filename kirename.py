@@ -36,12 +36,12 @@ def help():
     print("KiRename Version %s\n" % version)
     print('python kirename.py [-s <source>] [-d <dest>] [-n <name>] [-t <tag> ]\n')
     print('Rename a KiCad project\n')
-    print('-s               Source directory (default: ./)')
-    print('-d               Destination directory (default: ./)')
-    print('-n               New project name')
-    print('-t               Text to append')
-    print('-x               Dry run, do not change any files')
-    print('-h (--help)      You\'re here')
+    print('-s              Source directory (default: ./)')
+    print('-d              Destination directory (default: ./)')
+    print('-n              New project name')
+    print('-t              Text to append')
+    print('-x              Dry run, do not change any files')
+    print('-h (--help)     You\'re here')
 
 
 def main(argv):

@@ -4,15 +4,15 @@ Rename a KiCad project
 
 ## Usage
 
-```
+```output
 python kirename.py [-s <source>] [-d <dest>] [-n <name> ] [ -t <tag> ]
 
--s               Source directory (default: ./)
--d               Destination directory (default: ./)
--n               New project name
--t               Text to append
--x               Dry run, do not change any files
--h (--help)      You're here
+-s              Source directory (default: ./)
+-d              Destination directory (default: ./)
+-n              New project name
+-t              Text to append
+-x              Dry run, do not change any files
+-h (--help)     You're here
 ```
 
 ## Examples
