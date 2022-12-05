@@ -1,5 +1,9 @@
 # KiRename
 
+Renames the specified KiCad 6 project. Project path defaults to current directory if not specified.
+
+![image](https://user-images.githubusercontent.com/16174954/205734988-b35b41c1-09e5-4a90-93c4-4618441ac744.png)
+
 ## Installation
 
 **Note:** You need to have Python3 and git installed for this to work.
