@@ -6,7 +6,7 @@ Rename a KiCad project
 ## Usage
 
 ```
-kirename.py [-s <source>] [-d <dest>] [-n <name> | -t <tag> ]
+python kirename.py [-s <source>] [-d <dest>] [-n <name> | -t <tag> ]
 
 -s               source directory (./)
 -d               destination directory (./)
@@ -16,28 +16,10 @@ kirename.py [-s <source>] [-d <dest>] [-n <name> | -t <tag> ]
 -h | --help      show quick help | more help
 ```
 
-## Typical uses
+## Examples
 
-1. Rename a project foo.kicad_pro to bar.kicad_pro
-
-> $ python kirename.py -n new_name
-
-2. Rename a project foo.kicad_pro to foo_v1.kicad_pro
-
-> $ python kirename.py -t _v1
-
-3. Rename a project foo.kicad_pro to /temp/bar.kicad_pro
-
-> $ python kirename.py -d /temp -n bar
-
-4. Rename a project foo.kicad_pro to /temp/foo_v1.kicad_pro
-
-> $ python kirename.py -d /temp -t _v1
-
-5. Rename a project foo.kicad_pro to ./YYYY-MM-DD_HH-MM-SS/foo.kicad_pro
-
-> $ python kirename.py
-
-6. Rename a project foo.kicad_pro to ./save1/foo.kicad_pro
-
-> $ python kirename.py -d save1
+| Usage | Command |
+|-------|---------|
+| Rename project in current directory to `foo` | `python kirename.py -n foo` |
+| Rename project in directory `foo` to `bar` | `python kirename.py -s ./foo -n bar`
+| Append `_v1` to project in current directory | `python kirename.py -t _v1` |

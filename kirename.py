@@ -1,23 +1,28 @@
+import getopt
+import errno
+import shutil
+import sys
+import os
+from time import strftime
 version = "0.2.0"
 
-import os, sys, shutil, errno, getopt
-from time import strftime
 
-# handy methods from https://www.dotnetperls.com/between-before-after-python
 def before(value, a):
-    # Find first part and return slice before it.
     pos_a = value.find(a)
-    if pos_a == -1: return ""
+    if pos_a == -1:
+        return ""
     return value[0:pos_a]
-    
+
+
 def after(value, a):
-    # Find and validate first part.
     pos_a = value.rfind(a)
-    if pos_a == -1: return ""
-    # Returns chars after the found string.
+    if pos_a == -1:
+        return ""
     adjusted_pos_a = pos_a + len(a)
-    if adjusted_pos_a >= len(value): return ""
+    if adjusted_pos_a >= len(value):
+        return ""
     return value[adjusted_pos_a:]
+
 
 def make_sure_path_exists(path):
     try:
@@ -26,10 +31,12 @@ def make_sure_path_exists(path):
         if exception.errno != errno.EEXIST:
             raise
 
-def help(verbose):
+
+def help():
     print("KiRename Version %s" % version)
     print()
-    print('kirename.py [-s <source>] [-d <dest>] [-n <name> | -t <tag> ]')
+    print(
+        'python kirename.py [-s <source>] [-d <dest>] [-n <name> | -t <tag> ]')
     print()
     print('Rename a KiCad project')
     print()
@@ -40,29 +47,6 @@ def help(verbose):
     print('-x               Dry run, do not change any files')
     print('-h (--help)      You\'re here')
 
-    if verbose:
-        print()
-        print('Note: there must be only one project in source directory')
-        print('')
-        print('Typical uses:')
-        print('')
-        print('1. Rename a project foo.kicad_pro to bar.kicad_pro')
-        print('python kirename.py -n new_name')
-        print('')
-        print('2. Rename a project foo.kicad_pro to foo_v1.kicad_pro')
-        print('python kirename.py -t _v1')
-        print('')
-        print('3. Rename a project foo.kicad_pro to /temp/bar.kicad_pro')
-        print('python kirename.py -d /temp -n bar')
-        print('')
-        print('4. Rename a project foo.kicad_pro to /temp/foo_v1.kicad_pro')
-        print('python kirename.py -d /temp -t _v1')
-        print('')
-        print('5. Rename a project foo.kicad_pro to ./YYYY-MM-DD_HH-MM-SS/foo.kicad_pro')
-        print('python kirename.py')
-        print('')
-        print('6. Rename a project foo.kicad_pro to ./save1/foo.kicad_pro')
-        print('python kirename.py -d save1')
 
 def main(argv):
 
@@ -75,9 +59,9 @@ def main(argv):
     dry_run = False
 
     try:
-        opts, arg = getopt.getopt (argv,"s:d:n:t:hxv", ["help"])
+        opts, arg = getopt.getopt(argv, "s:d:n:t:hxv", ["help"])
     except getopt.GetoptError:
-        help() 
+        help()
         sys.exit(2)
 
     for opt, arg in opts:
@@ -98,28 +82,28 @@ def main(argv):
     if sourcedir == "":
         sourcedir = os.getcwd()
 
-    if not os.path.exists (sourcedir):
+    if not os.path.exists(sourcedir):
         print("Error: Invalid directory %s" % sourcedir)
         quit()
 
-    #
-    top_level_files = [f for f in os.listdir(sourcedir) if os.path.isfile(os.path.join(sourcedir, f))]
+    top_level_files = [f for f in os.listdir(
+        sourcedir) if os.path.isfile(os.path.join(sourcedir, f))]
 
     files = []
     if recurse:
         for root, dirnames, filenames in os.walk(sourcedir):
             for filename in filenames:
-                # print(os.path.join(after(root,sourcedir),filename))
-                files.append ( os.path.join(after(root,sourcedir),filename) )
+                files.append(os.path.join(after(root, sourcedir), filename))
     else:
-        files = [f for f in os.listdir(sourcedir) if os.path.isfile(os.path.join(sourcedir, f))]
+        files = [f for f in os.listdir(sourcedir) if os.path.isfile(
+            os.path.join(sourcedir, f))]
 
     project = ""
     for file in top_level_files:
-        if file.endswith (".kicad_pro"):
-        
+        if file.endswith(".kicad_pro"):
+
             if project == "":
-                project = before (file, ".kicad_pro")
+                project = before(file, ".kicad_pro")
             else:
                 print("Error: Multiple projects found in %s" % sourcedir)
                 quit(1)
@@ -128,12 +112,12 @@ def main(argv):
         print("Error: No project file found in %s" % sourcedir)
         quit(2)
 
-    if destdir== "":
-        if (suffix=="" and new_name==""):
+    if destdir == "":
+        if (suffix == "" and new_name == ""):
             mode = "copy"
-            destdir = os.path.join (sourcedir, strftime("%Y-%m-%d_%H-%M-%S"))
+            destdir = sourcedir
             new_name = project
-        elif (suffix!="" and new_name!=""):
+        elif (suffix != "" and new_name != ""):
             print("Error: Must specify only one of name or tag")
             quit()
         elif suffix != "":
@@ -144,11 +128,11 @@ def main(argv):
             mode = "rename"
             destdir = sourcedir
     else:
-        if (suffix=="" and new_name==""):
+        if (suffix == "" and new_name == ""):
             mode = "copy"
             destdir = os.path.join(sourcedir, destdir)
             new_name = project
-        elif (suffix!="" and new_name!=""):
+        elif (suffix != "" and new_name != ""):
             print("Error: Must specify only one of name or tag")
             quit()
         elif suffix != "":
@@ -173,55 +157,57 @@ def main(argv):
             print("create : %s" % destdir)
     else:
         try:
-            make_sure_path_exists (destdir)
+            make_sure_path_exists(destdir)
         except:
             print("Error creating dest folder %s" % destdir)
             quit()
 
     try:
         for file in files:
-            if (file.endswith(".kicad_sch") or 
-                file.endswith(".kicad_lib") or 
-                file.endswith(".kicad_mod") or 
-                file.endswith(".kicad_cmp") or 
-                file.endswith(".kicad_brd") or 
+            if (file.endswith(".kicad_sch") or
+                file.endswith(".kicad_lib") or
+                file.endswith(".kicad_mod") or
+                file.endswith(".kicad_cmp") or
+                file.endswith(".kicad_brd") or
                 file.endswith(".kicad_pcb") or
-                file.endswith(".kicad_pos") or 
-                file.endswith(".kicad_net") or 
-                file.endswith(".kicad_pro") or 
-                file.endswith(".kicad_py") or 
-                file.endswith(".kicad_pdf") or 
-                file.endswith(".kicad_txt") or 
-                file.endswith(".kicad_dcm") or 
-                file.endswith(".kicad_wks") or 
-                file == "fp-lib-table"):
+                file.endswith(".kicad_pos") or
+                file.endswith(".kicad_net") or
+                file.endswith(".kicad_pro") or
+                file.endswith(".kicad_py") or
+                file.endswith(".kicad_pdf") or
+                file.endswith(".kicad_txt") or
+                file.endswith(".kicad_dcm") or
+                file.endswith(".kicad_wks") or
+                    file == "fp-lib-table"):
 
-                if file.startswith (project):
+                if file.startswith(project):
                     # copy with rename
 
                     source_file = os.path.join(sourcedir, file)
-                    dest_file = os.path.join (destdir, new_name + after (file, project))
-        
+                    dest_file = os.path.join(
+                        destdir, new_name + after(file, project))
+
                     if dry_run:
                         print("rename : %s ==> %s" % (file, dest_file))
                     else:
                         if mode == "copy":
-                            shutil.copy2 (source_file, dest_file)
+                            shutil.copy2(source_file, dest_file)
                         else:
-                            os.rename (source_file, dest_file)
+                            os.rename(source_file, dest_file)
                 else:
                     if mode == "copy":
                         source_file = os.path.join(sourcedir, file)
-                        dest_file = os.path.join (destdir, file)
+                        dest_file = os.path.join(destdir, file)
                         if dry_run:
                             print("copy   : %s ==> %s" % (file, dest_file))
                         else:
-                            shutil.copy2 (source_file, dest_file)
+                            shutil.copy2(source_file, dest_file)
 
     except IOError as exception:
-        print("Error copying file %s : %s" % (exception.filename, exception.strerror))
+        print("Error copying file %s : %s" %
+              (exception.filename, exception.strerror))
         quit()
 
 
 if __name__ == "__main__":
-   main(sys.argv[1:])
+    main(sys.argv[1:])
