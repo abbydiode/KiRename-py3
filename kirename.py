@@ -133,7 +133,6 @@ def main(argv):
             quit()
         elif suffix != "":
             mode = "copy"
-            # destdir = destdir
             new_name = project + suffix
         elif new_name != "":
             mode = "copy"
@@ -174,11 +173,9 @@ def main(argv):
                 file.endswith(".kicad_txt") or
                 file.endswith(".kicad_dcm") or
                 file.endswith(".kicad_wks") or
-                    file == "fp-lib-table"):
+                file == "fp-lib-table"):
 
                 if file.startswith(project):
-                    # copy with rename
-
                     source_file = os.path.join(sourcedir, file)
                     dest_file = os.path.join(
                         destdir, new_name + after(file, project))
