@@ -1,18 +1,6 @@
-#
-# rename a KiCad project
-# 
-# Usage: rename_project [-s <source>] [-d <dest>] [-t <tag>]
-#
-# Copyright Bob Cousins 2017
-#
-# Licensed under GPLv3
-#
-# version 1
+version = "0.2.0"
 
-version = "0.1 Beta"
-
-import os, sys, re, shutil, errno, getopt
-from datetime import datetime
+import os, sys, shutil, errno, getopt
 from time import strftime
 
 # handy methods from https://www.dotnetperls.com/between-before-after-python
@@ -39,19 +27,18 @@ def make_sure_path_exists(path):
             raise
 
 def help(verbose):
-    print('rename_project.py [-s <source>] [-d <dest>] [-n <name> | -t <tag> ]')
+    print("KiRename Version %s" % version)
     print()
-    print("Version %s - GPLv3 - Copyright Bob Cousins 2017" % version)
-    print('*** Beta test version: use with caution ***')
+    print('kirename.py [-s <source>] [-d <dest>] [-n <name> | -t <tag> ]')
     print()
-    print('rename a KiCad project')
+    print('Rename a KiCad project')
     print()
-    print('-s               source directory (./)')
-    print('-d               destination directory (./)')
-    print('-n               new name')
-    print('-t               tag to add')
-    print('-x               dry run, do not change any files')
-    print('-h | --help      show quick help | more help')
+    print('-s               Source directory (default: ./)')
+    print('-d               Destination directory (default: ./)')
+    print('-n               New name')
+    print('-t               Tag to add')
+    print('-x               Dry run, do not change any files')
+    print('-h (--help)      You\'re here')
 
     if verbose:
         print()
@@ -60,46 +47,22 @@ def help(verbose):
         print('Typical uses:')
         print('')
         print('1. Rename a project foo.kicad_pro to bar.kicad_pro')
-        print('$ rename_project -n new_name')
+        print('python kirename.py -n new_name')
         print('')
         print('2. Rename a project foo.kicad_pro to foo_v1.kicad_pro')
-        print('$ rename_project -t _v1')
+        print('python kirename.py -t _v1')
         print('')
         print('3. Rename a project foo.kicad_pro to /temp/bar.kicad_pro')
-        print('$ rename_project -d /temp -n bar')
+        print('python kirename.py -d /temp -n bar')
         print('')
         print('4. Rename a project foo.kicad_pro to /temp/foo_v1.kicad_pro')
-        print('$ rename_project -d /temp -t _v1')
+        print('python kirename.py -d /temp -t _v1')
         print('')
         print('5. Rename a project foo.kicad_pro to ./YYYY-MM-DD_HH-MM-SS/foo.kicad_pro')
-        print('$ rename_project')
+        print('python kirename.py')
         print('')
         print('6. Rename a project foo.kicad_pro to ./save1/foo.kicad_pro')
-        print('$ rename_project -d save1')
-
-#  destdir[_tag] / name[_tag]
-
-#  destdir / name
-#  destdir / name_tag
-
-#  destdir_tag / name
-#  destdir_tag / name_tag
-
-# rename                    dest=src+date, name=project
-
-# rename -t tag             dest=src,      name=project+tag
-# rename -n name            dest=src,      name=name
-# --
-# rename -d dir             dest=src+dir,  name=project
-
-# rename -d dir -t tag      dest=dir,      name=project+tag
-# rename -d dir -n name     dest=dir,      name=name
-
-## save [to date]
-# rename -d 
-
-## save [to tag]
-# rename -d dir -t tag
+        print('python kirename.py -d save1')
 
 def main(argv):
 
@@ -110,8 +73,6 @@ def main(argv):
     destdir = ""
     recurse = False
     dry_run = False
-    verbose = False
-    overwrite = False
 
     try:
         opts, arg = getopt.getopt (argv,"s:d:n:t:hxv", ["help"])
@@ -134,12 +95,11 @@ def main(argv):
         elif opt in ("-x"):
             dry_run = True
 
-    ## check args
     if sourcedir == "":
         sourcedir = os.getcwd()
 
     if not os.path.exists (sourcedir):
-        print("error: %s is not a directory" % sourcedir)
+        print("Error: Invalid directory %s" % sourcedir)
         quit()
 
     #
@@ -154,9 +114,6 @@ def main(argv):
     else:
         files = [f for f in os.listdir(sourcedir) if os.path.isfile(os.path.join(sourcedir, f))]
 
-    #
-    # first find the project name
-
     project = ""
     for file in top_level_files:
         if file.endswith (".kicad_pro"):
@@ -164,11 +121,11 @@ def main(argv):
             if project == "":
                 project = before (file, ".kicad_pro")
             else:
-                print("error: multiple projects found in %s" % sourcedir)
+                print("Error: Multiple projects found in %s" % sourcedir)
                 quit(1)
 
     if project == "":
-        print("error: no project file found in %s" % sourcedir)
+        print("Error: No project file found in %s" % sourcedir)
         quit(2)
 
     if destdir== "":
@@ -177,7 +134,7 @@ def main(argv):
             destdir = os.path.join (sourcedir, strftime("%Y-%m-%d_%H-%M-%S"))
             new_name = project
         elif (suffix!="" and new_name!=""):
-            print("error: must specify only one of name or tag")
+            print("Error: Must specify only one of name or tag")
             quit()
         elif suffix != "":
             mode = "rename"
@@ -186,14 +143,13 @@ def main(argv):
         elif new_name != "":
             mode = "rename"
             destdir = sourcedir
-            # new_name = new_name
     else:
         if (suffix=="" and new_name==""):
             mode = "copy"
             destdir = os.path.join(sourcedir, destdir)
             new_name = project
         elif (suffix!="" and new_name!=""):
-            print("error: must specify only one of name or tag")
+            print("Error: Must specify only one of name or tag")
             quit()
         elif suffix != "":
             mode = "copy"
@@ -201,12 +157,7 @@ def main(argv):
             new_name = project + suffix
         elif new_name != "":
             mode = "copy"
-            # destdir = destdir
-            # new_name = new_name
-        
 
-
-    ## 
     print("project name: %s" % project)
     print("new project name: %s" % new_name)
     print("")
@@ -224,11 +175,10 @@ def main(argv):
         try:
             make_sure_path_exists (destdir)
         except:
-            print("error creating dest folder %s" % destdir)
+            print("Error creating dest folder %s" % destdir)
             quit()
 
     try:
-        # now copy files
         for file in files:
             if (file.endswith(".kicad_sch") or 
                 file.endswith(".kicad_lib") or 
@@ -260,8 +210,7 @@ def main(argv):
                         else:
                             os.rename (source_file, dest_file)
                 else:
-                    if mode=="copy":
-                        # straight copy
+                    if mode == "copy":
                         source_file = os.path.join(sourcedir, file)
                         dest_file = os.path.join (destdir, file)
                         if dry_run:
@@ -270,7 +219,7 @@ def main(argv):
                             shutil.copy2 (source_file, dest_file)
 
     except IOError as exception:
-        print("error copying file %s : %s" % (exception.filename, exception.strerror))
+        print("Error copying file %s : %s" % (exception.filename, exception.strerror))
         quit()
 
 

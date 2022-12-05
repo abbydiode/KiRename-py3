@@ -6,7 +6,7 @@ Rename a KiCad project
 ## Usage
 
 ```
-rename_project.py [-s <source>] [-d <dest>] [-n <name> | -t <tag> ]
+kirename.py [-s <source>] [-d <dest>] [-n <name> | -t <tag> ]
 
 -s               source directory (./)
 -d               destination directory (./)
@@ -20,24 +20,24 @@ rename_project.py [-s <source>] [-d <dest>] [-n <name> | -t <tag> ]
 
 1. Rename a project foo.kicad_pro to bar.kicad_pro
 
-> $ python rename_project.py -n new_name
+> $ python kirename.py -n new_name
 
 2. Rename a project foo.kicad_pro to foo_v1.kicad_pro
 
-> $ python rename_project.py -t _v1
+> $ python kirename.py -t _v1
 
 3. Rename a project foo.kicad_pro to /temp/bar.kicad_pro
 
-> $ python rename_project.py -d /temp -n bar
+> $ python kirename.py -d /temp -n bar
 
 4. Rename a project foo.kicad_pro to /temp/foo_v1.kicad_pro
 
-> $ python rename_project.py -d /temp -t _v1
+> $ python kirename.py -d /temp -t _v1
 
 5. Rename a project foo.kicad_pro to ./YYYY-MM-DD_HH-MM-SS/foo.kicad_pro
 
-> $ python rename_project.py
+> $ python kirename.py
 
 6. Rename a project foo.kicad_pro to ./save1/foo.kicad_pro
 
-> $ python rename_project.py -d save1
+> $ python kirename.py -d save1
